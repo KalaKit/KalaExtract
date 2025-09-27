@@ -81,7 +81,7 @@ Command: kalaextract --replace x y z w
 - z is the target bundle that will be replaced, it can either be the original bundle name or index
 - all params are required
 
---
+---
 
 ## Data stored in the target binary
 
