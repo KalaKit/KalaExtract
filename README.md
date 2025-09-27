@@ -2,6 +2,8 @@
 
 **KalaExtract** is a cli that can pass compressed or raw files to any target binary, all data is always passed at the end of the target binary so its structure remains safe. This is especially important for executables so that they don't need to be recompiled whenever you modify or add new data or remove existing data youve already passed to that target executable.
 
+Passing binary data to the target file should be done at your own risk, you are likely going to break stuff if you modify system files or files that are modified by another executable.
+
 **KalaExtract** is natively supported on **Windows** and **Linux** because it mostly uses C++ standard libraries and no OS-specific libraries.
 
 ---

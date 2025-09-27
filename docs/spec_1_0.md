@@ -20,65 +20,72 @@ These extensions were chosen because they're OS-agnostic since KalaExtract aims 
 
 ## Commands
 
-All errors are printed directly to the return value as string, out values as passed as `outParam&`.
+All errors are printed directly to the console output as string.
 
-### Inspect existing binary bundle data inside a binary
+### Create a new target binary
 
-Command: kalaextract inspect all / kalaextract inspect
+The purpose of this command is to let you create any binary file at any path so you can pass data to it with **KalaExtract**.
 
-- confirms if keyword exists
-- shows all bundle names and compressed/decompressed size of each bundle
+Command: kalaextract --create x
+
+- create a basic binary at path `x`
+- useful for creating empty binaries you can pass bundles directly into
+
+### Get existing binary bundle data
+
+Printed bundle data:
+- name
+- index
+- decompressed size
+- compressed size
+- the byte where the bundle data starts
+- the byte where the bundle data ends
+
+Command: kalaextract --get --all x
+
+- gets all **bundle data** of each bundle from target binary `x`
 - all params are required
 
-- command: kalaextract inspect x
-- inspects the size, data of your chosen bundle by name
+Command: kalaextract --get x y
+
+- gets the **bundle data** of your chosen bundle by name/index `x` from target binary `y`
 - all params are required
 
-### Get existing binary bundle struct data from binary
+### Replace existing binary bundle
 
-Command: kalaextract --get x y 
+Command: kalaextract --replace x y z
 
-- returns binary bundle by name x from exe y as struct which contains bundle binary, bundle name, bundle index, bundle decompressed size and bundle compressed size
-- useful for debugging or getting specific data
-- useless in manually run cli because it doesnt print the value, only useful in game or when running in program when you want specific data from the exe itself
+- very dangerous if misused because old data is lost forever
+- replaces target binary bundle with name/index `x` with new file `y` in target binary `z`
 - all params are required
 
-### Compress external file/dir into a binary bundle inside target binary
+### Compress/store external file/dir
 
 The `--compress` flag is optional, if the target bundle is already marked with the **supported compression extension** and `--compress` is used then the bundle is stored as is.
 
 Command: kalaextract --compress --all x
 
-- compresses all files and folders (except kalaextract itself) in current dir with their name and compressed size and uncompressed size into x exe
+- compresses all files and folders (except kalaextract itself) in current dir with their name and compressed size and uncompressed size into file `x`
 
 Command: kalaextract --compress x y z  
 
-- compresses x path with y name to z exe
+- compresses path `x` with name `y` inside target binary `z`
 
 Command: kalaextract --compress x y
 
-- compresses x path to y exe
+- compresses path `x` inside target binary `y`
 
-### Decompress existing binary bundle from a binary
+### Decompress existing binary bundle
 
 The `--decompress` flag is optional, if the target bundle is already not marked with the **supported compression extension** and `--decompress` is used then the bundle is returned as is.
 
 Command: kalaextract --decompress all x y
 
-- decompresses all files from y exe to x path
+- decompresses all files to path `x` from target binary `y` 
 
-Command: kalaextract --decompress x y z w
+Command: kalaextract --decompress x y z
 
-- decompresses x file with y name to z path from w exe
-
-### Replace existing binary bundle from a binary
-
-Command: kalaextract --replace x y z w
-
-- very dangerous if misused because old data is lost forever
-- passes x path with y name to w exe
-- z is the target bundle that will be replaced, it can either be the original bundle name or index
-- all params are required
+- decompresses bundle with name/index `x` to path `y` from target binary `z` 
 
 ---
 
