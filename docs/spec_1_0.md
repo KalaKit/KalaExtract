@@ -11,7 +11,6 @@ You can pass binary bundles to ANY file that allows writing to it and won't brea
 These extensions were chosen because they're OS-agnostic since KalaExtract aims for Windows and Linux.
 
 - .7z
-- .rar
 - .zip
 - .tar
 - .tar.gz
