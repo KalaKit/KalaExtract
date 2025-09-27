@@ -6,11 +6,11 @@
 #include <iostream>
 
 #include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/file_utils.hpp"
 
 #include "core/core.hpp"
 
-using KalaHeaders::Log;
-using KalaHeaders::LogType;
+using namespace KalaHeaders;
 
 using std::cin;
 
