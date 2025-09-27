@@ -70,10 +70,12 @@ Command: kalaextract --compress --all x
 Command: kalaextract --compress x y z  
 
 - compresses path `x` with name `y` inside target binary `z`
+- used for when you want a custom name for the bundle
 
 Command: kalaextract --compress x y
 
 - compresses path `x` inside target binary `y`
+- used for when you dont want a custom name for the bundle
 
 ### Decompress existing binary bundle
 
