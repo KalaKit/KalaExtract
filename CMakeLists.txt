@@ -31,6 +31,7 @@ endif()
 
 # Directory Setup
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(EXT_SHARED_DIR "${CMAKE_SOURCE_DIR}/_external_shared")
 
 # Source Files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
@@ -57,6 +58,7 @@ file(GLOB_RECURSE HEADERS
 target_sources(KalaExtract PRIVATE ${HEADERS})
 target_include_directories(KalaExtract PRIVATE
 	"${INCLUDE_DIR}"
+	"${EXT_SHARED_DIR}"
 )
 
 # Preprocessor Defines
@@ -80,13 +82,22 @@ install(TARGETS KalaExtract DESTINATION ${CMAKE_INSTALL_BINDIR})
 set(COPY_TARGETS README.md LICENSE.md)
 foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaExtract POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove 
+    COMMAND ${CMAKE_COMMAND} -E rm -f 
         "$<TARGET_FILE_DIR:KalaExtract>/${FILE}"
     COMMAND ${CMAKE_COMMAND} -E copy
 		"${CMAKE_SOURCE_DIR}/${FILE}"
 		"$<TARGET_FILE_DIR:KalaExtract>/${FILE}"
 )
 endforeach()
+
+# Copy entire docs folder
+add_custom_command(TARGET KalaExtract POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rm -rf
+        "$<TARGET_FILE_DIR:KalaExtract>/docs"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/docs"
+        "$<TARGET_FILE_DIR:KalaExtract>/docs"
+)
 
 # Package
 include(CPack)

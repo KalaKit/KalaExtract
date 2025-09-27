@@ -5,8 +5,9 @@
 
 #include <iostream>
 
+#include "KalaHeaders/log_utils.hpp"
+
 #include "core/core.hpp"
-#include "external/log_utils.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
