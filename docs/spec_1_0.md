@@ -44,24 +44,43 @@ Printed bundle data:
 Command: kalaextract --get --all x
 
 - gets all **bundle data** of each bundle from target binary `x`
-- all params are required
 
 Command: kalaextract --get x y
 
 - gets the **bundle data** of your chosen bundle by name/index `x` from target binary `y`
-- all params are required
 
 ### Replace existing binary bundle
 
+Replaced original bundle data is lost forever, it is recommended to decompress it first if you wanna keep it
+
 Command: kalaextract --replace x y z
 
-- very dangerous if misused because old data is lost forever
 - replaces target binary bundle with name/index `x` with new file `y` in target binary `z`
-- all params are required
+
+### Remove existing binary bundle
+
+Replaced bundle data is lost forever, it is recommended to decompress it first if you wanna keep it
+
+Command: kalaextract --remove --all x
+
+- removes all bundles from target binary `x`
+
+Command: kalaextract --remove x y
+
+- removes target binary bundle with name/index `x` from target binary `y`
+
+### Reset target binary
+
+Removed bundle data is lost forever, it is recommended to decompress it first if you wanna keep it
+
+Command: kalaextract --reset x
+
+- removes all bundles from target binary `x` and the global header, as if no external data was never passed to the target binary
+- this command does not "reset" to original file size, instead it removes the header and all bundles and their headers within the KalaExtract range, this preserves data placed by another executable after any KalaExtract data
 
 ### Compress/store external file/dir
 
-The `--compress` flag is optional, if the target bundle is already marked with the **supported compression extension** and `--compress` is used then the bundle is stored as is.
+If the target bundle is already marked with the **supported compression extension** then the bundle is stored as is.
 
 Command: kalaextract --compress --all x
 
@@ -79,7 +98,7 @@ Command: kalaextract --compress x y
 
 ### Decompress existing binary bundle
 
-The `--decompress` flag is optional, if the target bundle is already not marked with the **supported compression extension** and `--decompress` is used then the bundle is returned as is.
+If the target bundle is already not marked with the **supported compression extension** then the bundle is returned as is.
 
 Command: kalaextract --decompress all x y
 
