@@ -22,6 +22,28 @@ These extensions were chosen because they're OS-agnostic since KalaExtract aims 
 
 All errors are printed directly to the console output as string.
 
+### Get info about commands
+
+Command: --help
+
+- lists all available commands
+
+Command: --help x
+
+- lists detailed info about command `x`
+
+### Exit KalaExtract
+
+You are also able to pass either exit condition as the final parameter of each command and then once the real command is done then KalaExtract exits with the chosen exit type
+
+Command: --exit
+
+- Closes **KalaExtract** but requires you to press `enter` to exit so you can still read logs if needed
+
+Command: --quickexit
+
+- Closes **KalaExtract** and exits straight away with no further input needed
+
 ### Create a new target binary
 
 The purpose of this command is to let you create any binary file at any path so you can pass data to it with **KalaExtract**.
