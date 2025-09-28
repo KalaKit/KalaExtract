@@ -88,12 +88,14 @@ static void Command_Reset(const path& targetBinary);
 
 static void Command_Pack(
 	Command_Pack_Range range,
+	bool willCompress,
 	const string& newFile,
 	const string& name,
 	const string& targetBinary);
 
 static void Command_Unpack(
 	Command_Unpack_Range range,
+	bool willDecompress,
 	const string& nameOrIndex,
 	const path& decompressTo,
 	const path& targetBinary);
@@ -257,35 +259,78 @@ namespace KalaExtract
 		//copy a file inside a target binary
 		else if (params[0] == "--pack")
 		{
+			//pack all, dont compress
 			if (params[1] == "--all"
 				&& params.size() == 3)
 			{
 				Command_Pack(
 					Command_Pack_Range::PACK_ALL,
+					false,
 					"",         //name is unused if no name is passed
 					"",         //path is unused if no path is passed
 					params[2]);
 			}
+			//pack all, compress all
+			else if (params[1] == "--compress"
+				&& params[2] == "--all"
+				&& params.size() == 4)
+			{
+				Command_Pack(
+					Command_Pack_Range::PACK_ALL,
+					true,
+					"",         //name is unused if no name is passed
+					"",         //path is unused if no path is passed
+					params[3]);
+			}
+
+			//pack target with name, compress
+			else if (params[1] == "--compress"
+				&& params.size() == 5)
+			{
+				Command_Pack(
+					Command_Pack_Range::PACK_TARGET_WITH_NAME,
+					true,
+					params[2],
+					params[3],
+					params[4]);
+			}
+			//pack target with name, dont compress
 			else if (params.size() == 4)
 			{
 				Command_Pack(
 					Command_Pack_Range::PACK_TARGET_WITH_NAME,
+					false,
 					params[1],
 					params[2],
 					params[3]);
 			}
+
+			//pack target with no name, dont compress
 			else if (params.size() == 3)
 			{
 				Command_Pack(
 					Command_Pack_Range::PACK_TARGET_NO_NAME,
+					false,
 					params[1],
 					"",         //name is unused if no name is passed
 					params[2]);
 			}
+			//pack target with no name, compress
+			else if (params[1] == "--compress"
+				&& params.size() == 4)
+			{
+				Command_Pack(
+					Command_Pack_Range::PACK_TARGET_NO_NAME,
+					true,
+					params[2],
+					"",         //name is unused if no name is passed
+					params[3]);
+			}
+
 			else
 			{
 				Log::Print(
-					"Incorrect parameter structure was passed to '--compress' command! Type '--help' to list all commands.",
+					"Incorrect parameter structure was passed to '--pack' command! Type '--help' to list all commands.",
 					"PARSE",
 					LogType::LOG_ERROR);
 
@@ -296,28 +341,58 @@ namespace KalaExtract
 		//copy a bundle outside as a file from a target binary
 		else if (params[0] == "--unpack")
 		{
+			//unpack all, dont decompress
 			if (params[1] == "--all"
 				&& params.size() == 4)
 			{
 				Command_Unpack(
 					Command_Unpack_Range::UNPACK_ALL,
+					false,
 					"",         //name is unused if no name is passed
 					params[2],
 					params[3]);
 			}
+			//unpack all, decompress
+			else if (params[1] == "--decompress"
+				&& params[2] == "--all"
+				&& params.size() == 5)
+			{
+				Command_Unpack(
+					Command_Unpack_Range::UNPACK_ALL,
+					true,
+					"",         //name is unused if no name is passed
+					params[3],
+					params[4]);
+			}
+
+			//unpack selected, dont decompress
 			else if (params[1] != "--all"
-				&& params.size() == 4)
+				&& params.size() == 5)
 			{
 				Command_Unpack(
 					Command_Unpack_Range::UNPACK_TARGET,
-					params[1],
+					false,
 					params[2],
-					params[3]);
+					params[3],
+					params[4]);
 			}
+			//unpack selected, decompress
+			else if (params[1] == "--decompress"
+				&& params[2] != "--all"
+				&& params.size() == 6)
+			{
+				Command_Unpack(
+					Command_Unpack_Range::UNPACK_TARGET,
+					true,
+					params[3],
+					params[4],
+					params[5]);
+			}
+
 			else
 			{
 				Log::Print(
-					"Incorrect parameter structure was passed to '--decompress' command! Type '--help' to list all commands.",
+					"Incorrect parameter structure was passed to '--unpack' command! Type '--help' to list all commands.",
 					"PARSE",
 					LogType::LOG_ERROR);
 
@@ -604,6 +679,7 @@ void Command_Reset(const path& targetBinary)
 
 void Command_Pack(
 	Command_Pack_Range range,
+	bool willCompress,
 	const string& newFile,
 	const string& name,
 	const string& targetBinary)
@@ -614,6 +690,7 @@ void Command_Pack(
 
 void Command_Unpack(
 	Command_Unpack_Range range,
+	bool willDecompress,
 	const string& nameOrIndex,
 	const path& decompressTo,
 	const path& targetBinary)
