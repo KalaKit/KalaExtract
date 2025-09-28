@@ -107,7 +107,7 @@ namespace KalaExtract
 				"PARSE",
 				LogType::LOG_ERROR);
 
-			Core::WaitForInput();
+			return;
 		}
 
 		//list all commands
@@ -128,7 +128,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -146,7 +146,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -177,7 +177,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -198,7 +198,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -230,7 +230,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -248,7 +248,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -287,7 +287,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 
@@ -319,7 +319,7 @@ namespace KalaExtract
 					"PARSE",
 					LogType::LOG_ERROR);
 
-				Core::WaitForInput();
+				return;
 			}
 		}
 	}
@@ -340,6 +340,8 @@ void Command_Help(const string& targetCommand)
 		}
 
 		Log::Print(oss.str());
+
+		return;
 	}
 	else
 	{
@@ -352,7 +354,7 @@ void Command_Help(const string& targetCommand)
 				"PARSE",
 				LogType::LOG_ERROR);
 
-			Core::WaitForInput();
+			return;
 		}
 
 		if (targetCommand == "--help")
@@ -367,7 +369,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--exit")
 		{
@@ -379,7 +381,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--get")
 		{
@@ -405,7 +407,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--replace")
 		{
@@ -421,7 +423,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--remove")
 		{
@@ -442,7 +444,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--reset")
 		{
@@ -456,7 +458,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--compress")
 		{
@@ -483,7 +485,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 		else if (targetCommand == "--decompress")
 		{
@@ -504,7 +506,7 @@ void Command_Help(const string& targetCommand)
 
 			Log::Print(oss.str());
 
-			Core::WaitForInput();
+			return;
 		}
 	}
 }
@@ -525,7 +527,7 @@ void Command_Create(const path& targetBinary)
 			"COMMAND_CREATE",
 			LogType::LOG_ERROR);
 
-		Core::WaitForInput();
+		return;
 	}
 
 	Log::Print(

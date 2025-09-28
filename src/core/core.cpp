@@ -51,6 +51,7 @@ static void PrintBanner()
 }
 
 static void GetParams(int argc, char* argv[]);
+static void WaitForInput();
 static void Exit();
 
 namespace KalaExtract
@@ -63,63 +64,11 @@ namespace KalaExtract
 
 		Exit();
 	}
-
-	void Core::WaitForInput()
-	{
-		string line{};
-
-		while (true)
-		{
-			Log::Print("Enter command:");
-
-			getline(cin, line);
-
-#ifdef _WIN32
-			system("cls");
-#else
-			system("clear");
-#endif
-
-			PrintBanner();
-
-			vector<string> splitValue = SplitString(line, " ");
-
-			if (splitValue.size() == 0)
-			{
-				Log::Print(
-					"No commands were passed. Type '--help' to list all commands",
-					"PARSE",
-					LogType::LOG_INFO);
-
-				continue;
-			}
-
-			if (splitValue[0] == "--exit")
-			{
-				Log::Print(
-					"KalaExtract was shut down by user.",
-					"PARSE",
-					LogType::LOG_INFO);
-
-				Exit();
-			}
-
-			bool shouldExit = (
-				!splitValue.empty()
-				&& splitValue.back() == "--exit");
-
-			if (shouldExit) splitValue.pop_back();
-
-			Command::ParseCommand(splitValue);
-
-			if (shouldExit) Exit();
-		}
-	}
 }
 
 void GetParams(int argc, char* argv[])
 {
-	if (argc == 1) Core::WaitForInput();
+	if (argc == 1) WaitForInput();
 
 	vector<string> params{};
 	string insertedCommand{};
@@ -138,7 +87,7 @@ void GetParams(int argc, char* argv[])
 		insertedCommand += "'" + string(argv[i]) + "' ";
 	}
 
-	if (params.empty()) Core::WaitForInput();
+	if (params.empty()) WaitForInput();
 
 	Log::Print(
 		"Inserted command: " + insertedCommand + "\n",
@@ -148,6 +97,58 @@ void GetParams(int argc, char* argv[])
 	Command::ParseCommand(params);
 
 	if (shouldExit) Exit();
+}
+
+void WaitForInput()
+{
+	string line{};
+
+	while (true)
+	{
+		Log::Print("Enter command:");
+
+		getline(cin, line);
+
+#ifdef _WIN32
+		system("cls");
+#else
+		system("clear");
+#endif
+
+		PrintBanner();
+
+		vector<string> splitValue = SplitString(line, " ");
+
+		if (splitValue.size() == 0)
+		{
+			Log::Print(
+				"No commands were passed. Type '--help' to list all commands",
+				"PARSE",
+				LogType::LOG_INFO);
+
+			continue;
+		}
+
+		if (splitValue[0] == "--exit")
+		{
+			Log::Print(
+				"KalaExtract was shut down by user.",
+				"PARSE",
+				LogType::LOG_INFO);
+
+			Exit();
+		}
+
+		bool shouldExit = (
+			!splitValue.empty()
+			&& splitValue.back() == "--exit");
+
+		if (shouldExit) splitValue.pop_back();
+
+		Command::ParseCommand(splitValue);
+
+		if (shouldExit) Exit();
+	}
 }
 
 void Exit()
