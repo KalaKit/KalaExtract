@@ -34,7 +34,7 @@ constexpr string_view BUNDLE_END = "LOST_EMPIRE_END";
 struct GlobalHeaderData
 {
 	//Total count of all bundles
-	char size_bundles[255];
+	char size_bundles[256];
 
 	//Size of all bundle raw data excluding their headers and end magic words
 	u32 totalSize;
@@ -44,10 +44,10 @@ struct GlobalHeaderData
 struct BundleHeaderData
 {
 	//Name of this bundle
-	char name_bundle[255];
+	char name_bundle[256];
 
 	//Which bundle is this
-	char index_bundle[255];
+	char index_bundle[256];
 
 	//Size of compressed bundle
 	u32 size_compressed;
@@ -55,7 +55,7 @@ struct BundleHeaderData
 	u32 size_decompressed;
 
 	//Path where bundle originally came from
-	char path_bundleOrigin[255];
+	char path_bundleOrigin[256];
 
 	//Bytes from bundle header end to bundle end magic start
 	u32 pos_headerEnd;
@@ -126,10 +126,64 @@ namespace KalaExtract
 	void Data::Command_Pack(
 		Command_Pack_Range range,
 		bool willCompress,
-		const string& newFile,
+		const path& newFile,
 		const string& name,
-		const string& targetBinary)
+		const path& targetBinary)
 	{
+		ostringstream oss{};
+
+		if (range != Command_Pack_Range::PACK_ALL
+			&& !exists(newFile))
+		{
+			oss << "Failed to pack new file '" << newFile << "' to target '" << targetBinary
+				<< "' because the new file does not exist!";
+
+			Log::Print(
+				oss.str(),
+				"COMMAND_PACK",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+		if (range == Command_Pack_Range::PACK_TARGET_WITH_NAME
+			&& name.empty())
+		{
+			oss << "Failed to pack new file '" << newFile << "' to target '" << targetBinary
+				<< "' because the assigned name is empty!";
+
+			Log::Print(
+				oss.str(),
+				"COMMAND_PACK",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+		if (!exists(targetBinary))
+		{
+			oss << "Failed to pack new file '" << newFile << "' to target '" << targetBinary
+				<< "' because the target does not exist!";
+
+			Log::Print(
+				oss.str(),
+				"COMMAND_PACK",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		string targetName = name;
+		if (targetName.empty())
+		{
+			targetName = path(newFile).stem().string();
+		}
+		oss << "Starting to pack file or folder '" << newFile
+			<< "' with name '" << targetName << "' to target '" << targetBinary.stem() << "'.";
+
+		Log::Print(
+			oss.str(),
+			"COMMAND_PACK",
+			LogType::LOG_INFO);
+
 		//add new global header if one doesnt already exist
 		AddGlobalHeader(targetBinary);
 	}
@@ -145,15 +199,91 @@ namespace KalaExtract
 	}
 }
 
-bool AddGlobalHeader(const path& targetPath)
+bool AddGlobalHeader(const path& targetBinary)
 {
 	//skip if global header already exists
-	if (HasGlobalHeader(targetPath)) return false;
+	if (HasGlobalHeader(targetBinary)) return false;
+
+	ostringstream oss{};
+
+	oss << "Did not find global header from target '" << targetBinary
+		<< "', adding new global header.";
+
+	Log::Print(
+		oss.str(),
+		"GLOBAL_HEADER",
+		LogType::LOG_INFO);
+
+	oss.str("");
+	oss.clear();
+
+	try
+	{
+		ofstream out(
+			targetBinary,
+			ios::binary
+			| ios::out
+			| ios::app);
+
+		if (out.fail()
+			&& errno != 0)
+		{
+			int err = errno;
+
+			oss << "Failed to place global header to target '"
+				<< targetBinary << "' because it couldn't be opened! Reason: " << strerror(err);
+
+			Log::Print(
+				oss.str(),
+				"GLOBAL_HEADER",
+				LogType::LOG_ERROR);
+
+			return false;
+		}
+
+		GlobalHeaderData header{};
+
+		const char magic[16] = "LOST_EMPIRE_BIN";
+		memset(header.size_bundles, 0, sizeof(header.size_bundles));
+		header.totalSize = 0;
+
+		out.write(magic, sizeof(magic));
+		out.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+		if (out.fail()
+			&& errno != 0)
+		{
+			int err = errno;
+
+			oss << "Failed to place global header to target '"
+				<< targetBinary << "' because a write error occured! Reason: " << strerror(err);
+
+			Log::Print(
+				oss.str(),
+				"GLOBAL_HEADER",
+				LogType::LOG_ERROR);
+
+			return false;
+		}
+	}
+	catch (exception& e)
+	{
+		oss << "Failed to add global header to target '" << targetBinary << "'! Reason: " << e.what();
+
+		return false;
+	}
+
+	oss << "Added global header to target '" << targetBinary << "'.";
+
+	Log::Print(
+		oss.str(),
+		"GLOBAL_HEADER",
+		LogType::LOG_SUCCESS);
 
 	return true;
 }
 
-bool HasGlobalHeader(const path& targetPath)
+bool HasGlobalHeader(const path& targetBinary)
 {
 	string headerWithNull(GLOBAL_HEADER);
 	headerWithNull.push_back('\0');
@@ -161,7 +291,7 @@ bool HasGlobalHeader(const path& targetPath)
 	vector<BinaryRange> outData{};
 
 	string result = GetRangeByValue(
-		targetPath,
+		targetBinary,
 		headerWithNull,
 		outData);
 
@@ -169,7 +299,7 @@ bool HasGlobalHeader(const path& targetPath)
 	{
 		ostringstream oss{};
 
-		oss << "Failed to check if target path '" << targetPath
+		oss << "Failed to check if target path '" << targetBinary
 			<< "' has a global header or not! Reason: " << result;
 
 		Log::Print(

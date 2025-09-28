@@ -116,29 +116,29 @@ These two tables highlight what data is actually stored besides just the bundles
 
 Some size notes:
 
-- global header size is always `260 bytes`
-- each bundle header size is always `784 bytes`
-- size of max bundle headers + global header data never exceeds `200KB (200,180 bytes)`
+- global header size is always `276 bytes`
+- each bundle header size is always `816 bytes`
+- size of max bundle headers + global header data never exceeds `~203.5 KB (208,356 bytes)`
 - size of all header sizes + all bundle binary data never exceeds `~1.095 TB`
 
 ### Global header data
 
 Offset | Size | Type        | Field         | Notes
 -------|------|-------------|---------------|-------------------------------------
-0–15   | 16   | char[16]    | Magic keyword | `LOST_EMPIRE_BIN_` (16 bytes fixed)
-16–270 | 255  | char[255]   | Bundle IDs    | 254 chars + `\0`
-271–274| 4    | u32         | Total size    | Sum of all bundles
+0–15   | 16   | char[16]    | Magic keyword | `LOST_EMPIRE_BIN` (16 bytes fixed)
+16–271 | 256  | char[256]   | Bundle IDs    | 255 chars + `\0`
+272–275| 4    | u32         | Total size    | Sum of all bundles
 
 ### Individual bundle header data
 
 Offset | Size | Type        | Field             | Notes
 -------|------|-------------|-------------------|-------------------------------------
-0–15   | 16   | char[16]    | Magic keyword     | `LOST_EMPIRE_STA_` (16 bytes fixed)
-16–270 | 255  | char[255]   | Bundle name       | 254 chars + `\0`
-271–525| 255  | char[255]   | Bundle index      | Fixed, zero-padded text index
-526–529| 4    | u32         | Compressed size   | Bundle compressed size before adding to target binary
-530–533| 4    | u32         | Decompressed size | Bundle decompressed size before adding to target binary
-534–788| 255  | char[255]   | Origin path       | 254 chars + `\0`
-789–792| 4    | u32         | pos_headerEnd     | Distance from bundle header end to bundle end magic
-793–796| 4    | u32         | pos_endMagicStart | Distance back from bundle end magic to bundle header end
-797–812| 16   | char[16]    | End magic keyword | `LOST_EMPIRE_END_` (16 bytes fixed)
+0–15   | 16   | char[16]    | Magic keyword     | `LOST_EMPIRE_STA` (16 bytes fixed)
+16–271 | 256  | char[256]   | Bundle name       | 255 chars + `\0`
+272–527| 256  | char[256]   | Bundle index      | Fixed, zero-padded text index
+528–531| 4    | u32         | Compressed size   | Bundle compressed size before adding to target binary
+532–535| 4    | u32         | Decompressed size | Bundle decompressed size before adding to target binary
+536–791| 256  | char[256]   | Origin path       | 255 chars + `\0`
+792–795| 4    | u32         | pos_headerEnd     | Distance from bundle header end to bundle end magic
+796–799| 4    | u32         | pos_endMagicStart | Distance back from bundle end magic to bundle header end
+800–815| 16   | char[16]    | End magic keyword | `LOST_EMPIRE_END` (16 bytes fixed)

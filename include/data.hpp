@@ -65,9 +65,9 @@ namespace KalaExtract
 		static void Command_Pack(
 			Command_Pack_Range range,
 			bool willCompress,
-			const string& newFile,
+			const path& newFile,
 			const string& name,
-			const string& targetBinary);
+			const path& targetBinary);
 
 		static void Command_Unpack(
 			Command_Unpack_Range range,
