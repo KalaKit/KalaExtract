@@ -78,35 +78,35 @@ Command: kalaextract --reset x
 - removes all bundles from target binary `x` and the global header, as if no external data was never passed to the target binary
 - this command does not "reset" to original file size, instead it removes the header and all bundles and their headers within the KalaExtract range, this preserves data placed by another executable after any KalaExtract data
 
-### Compress/store external file/dir
+### Pack external file/dir
 
-If the target bundle is already marked with the **supported compression extension** then the bundle is stored as is.
+If the optional `--compress` flag is used and the target file or directory is already marked with the **supported compression extension** then the bundle is stored as is.
 
-Command: kalaextract --compress --all x
+Command: kalaextract --pack --compress --all x
 
-- compresses all files and folders (except **KalaExtract** itself) in current dir with their name and compressed size and uncompressed size into file `x`
+- packs and compresses all files and folders (except **KalaExtract** itself) in current dir with their name and compressed size and uncompressed size into file `x`
 
-Command: kalaextract --compress x y z  
+Command: kalaextract --pack --compress x y z  
 
-- compresses path `x` with name `y` inside target binary `z`
+- packs and compresses path `x` with name `y` inside target binary `z`
 - used for when you want a custom name for the bundle
 
-Command: kalaextract --compress x y
+Command: kalaextract --pack --compress x y
 
-- compresses path `x` inside target binary `y`
+- packs and compresses path `x` inside target binary `y`
 - used for when you dont want a custom name for the bundle
 
 ### Decompress existing binary bundle
 
-If the target bundle is already not marked with the **supported compression extension** then the bundle is returned as is.
+If the optional `--decompress` flag is used and the target file or directory is already not marked with the **supported compression extension** then the bundle is returned as is.
 
-Command: kalaextract --decompress all x y
+Command: kalaextract --unpack --decompress all x y
 
-- decompresses all bundles to path `x` from target binary `y` 
+- unpacks and decompresses all bundles to path `x` from target binary `y` 
 
-Command: kalaextract --decompress x y z
+Command: kalaextract --unpack --decompress x y z
 
-- decompresses a bundle with name/index `x` to path `y` from target binary `z` 
+- unpacks and decompresses a bundle with name/index `x` to path `y` from target binary `z` 
 
 ---
 

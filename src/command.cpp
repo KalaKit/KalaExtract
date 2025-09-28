@@ -36,8 +36,8 @@ static const array<string_view, 9> commands =
 	"--replace",
 	"--remove",
 	"--reset",
-	"--compress",
-	"--decompress"
+	"--pack",
+	"--unpack"
 };
 
 enum Command_Get_Range
@@ -52,17 +52,17 @@ enum Command_Remove_Range
 	REMOVE_TARGET
 };
 
-enum Command_Compress_Range
+enum Command_Pack_Range
 {
-	COMPRESS_ALL,
-	COMPRESS_TARGET_WITH_NAME,
-	COMPRESS_TARGET_NO_NAME
+	PACK_ALL,
+	PACK_TARGET_WITH_NAME,
+	PACK_TARGET_NO_NAME
 };
 
-enum Command_Decompress_Range
+enum Command_Unpack_Range
 {
-	DECOMPRESS_ALL,
-	DECOMPRESS_TARGET
+	UNPACK_ALL,
+	UNPACK_TARGET
 };
 
 static void Command_Help(const string& targetCommand);
@@ -86,14 +86,14 @@ static void Command_Remove(
 
 static void Command_Reset(const path& targetBinary);
 
-static void Command_Compress(
-	Command_Compress_Range range,
+static void Command_Pack(
+	Command_Pack_Range range,
 	const string& newFile,
 	const string& name,
 	const string& targetBinary);
 
-static void Command_Decompress(
-	Command_Decompress_Range range,
+static void Command_Unpack(
+	Command_Unpack_Range range,
 	const string& nameOrIndex,
 	const path& decompressTo,
 	const path& targetBinary);
@@ -255,29 +255,29 @@ namespace KalaExtract
 		}
 
 		//copy a file inside a target binary
-		else if (params[0] == "--compress")
+		else if (params[0] == "--pack")
 		{
 			if (params[1] == "--all"
 				&& params.size() == 3)
 			{
-				Command_Compress(
-					Command_Compress_Range::COMPRESS_ALL,
+				Command_Pack(
+					Command_Pack_Range::PACK_ALL,
 					"",         //name is unused if no name is passed
 					"",         //path is unused if no path is passed
 					params[2]);
 			}
 			else if (params.size() == 4)
 			{
-				Command_Compress(
-					Command_Compress_Range::COMPRESS_TARGET_WITH_NAME,
+				Command_Pack(
+					Command_Pack_Range::PACK_TARGET_WITH_NAME,
 					params[1],
 					params[2],
 					params[3]);
 			}
 			else if (params.size() == 3)
 			{
-				Command_Compress(
-					Command_Compress_Range::COMPRESS_TARGET_NO_NAME,
+				Command_Pack(
+					Command_Pack_Range::PACK_TARGET_NO_NAME,
 					params[1],
 					"",         //name is unused if no name is passed
 					params[2]);
@@ -294,13 +294,13 @@ namespace KalaExtract
 		}
 
 		//copy a bundle outside as a file from a target binary
-		else if (params[0] == "--decompress")
+		else if (params[0] == "--unpack")
 		{
 			if (params[1] == "--all"
 				&& params.size() == 4)
 			{
-				Command_Decompress(
-					Command_Decompress_Range::DECOMPRESS_ALL,
+				Command_Unpack(
+					Command_Unpack_Range::UNPACK_ALL,
 					"",         //name is unused if no name is passed
 					params[2],
 					params[3]);
@@ -308,8 +308,8 @@ namespace KalaExtract
 			else if (params[1] != "--all"
 				&& params.size() == 4)
 			{
-				Command_Decompress(
-					Command_Decompress_Range::DECOMPRESS_TARGET,
+				Command_Unpack(
+					Command_Unpack_Range::UNPACK_TARGET,
 					params[1],
 					params[2],
 					params[3]);
@@ -462,49 +462,84 @@ void Command_Help(const string& targetCommand)
 
 			return;
 		}
-		else if (targetCommand == "--compress")
+		else if (targetCommand == "--pack")
 		{
-			oss << "Either compresses selected file or dir to '.7z'"
-				<< " or simply copies the already compressed file to the target binary.\n\n"
+			oss << "Packs the binary to the target binary. The optional '--compress'"
+				<< " flag either compresses selected file or dir to '.7z'"
+				<< " or simply packs the already compressed file to the target binary"
+				<< " if the selected file or dir is already compressed.\n\n"
 
 				<< "Accepted parameters:\n\n"
 
-				<< "When compressing all files and folders except KalaExtract as separate bundles in current directory:\n"
-				<< "[1] --compress: the command itself\n"
+				<< "When packing all files and folders except KalaExtract as separate bundles in current directory:\n"
+				<< "[1] --pack: the command itself\n"
 				<< "[2] --all: get all files and folders except KalaExtract in current folder\n"
-				<< "[3] targetBinary: the target binary where the bundles will be compressed/stored to\n\n"
+				<< "[3] targetBinary: the target binary where the bundles will be packed to\n\n"
 
-				<< "When compressing selected file or folder with custom name:\n"
-				<< "[1] --compress: the command itself\n"
-				<< "[2] filePath: the path that will be compressed/stored\n"
+				<< "When packing selected file or folder with custom name:\n"
+				<< "[1] --pack: the command itself\n"
+				<< "[2] filePath: the path that will be packed\n"
 				<< "[3] name: the name this bundle will be saved as\n"
-				<< "[4] targetBinary: the target binary where the bundle will be compressed/stored to\n\n"
+				<< "[4] targetBinary: the target binary where the bundle will be packed to\n\n"
 
-				<< "When compressing selected file or folder with automatic name (saves as path filename):\n"
-				<< "[1] --compress: the command itself\n"
-				<< "[2] filePath: the path that will be compressed/stored\n"
-				<< "[3] targetBinary: the target binary where the bundle will be compressed/stored to";
+				<< "When packing selected file or folder with automatic name (saves as path filename):\n"
+				<< "[1] --pack: the command itself\n"
+				<< "[2] filePath: the path that will be packed\n"
+				<< "[3] targetBinary: the target binary where the bundle will be packed to\n\n"
+
+				<< "When packing and compressing all files and folders except KalaExtract as separate bundles in current directory:\n"
+				<< "[1] --pack: the command itself\n"
+				<< "[2] --compress: the optional compress flag\n"
+				<< "[3] --all: get all files and folders except KalaExtract in current folder\n"
+				<< "[4] targetBinary: the target binary where the bundles will be packed to\n\n"
+
+				<< "When packing and compressing selected file or folder with custom name:\n"
+				<< "[1] --pack: the command itself\n"
+				<< "[2] --compress: the optional compress flag\n"
+				<< "[3] filePath: the path that will be packed\n"
+				<< "[4] name: the name this bundle will be saved as\n"
+				<< "[5] targetBinary: the target binary where the bundle will be packed to\n\n"
+
+				<< "When packing and compressing selected file or folder with automatic name (saves as path filename):\n"
+				<< "[1] --pack: the command itself\n"
+				<< "[2] --compress: the optional compress flag\n"
+				<< "[3] filePath: the path that will be packed\n"
+				<< "[4] targetBinary: the target binary where the bundle will be packed to";
 
 			Log::Print(oss.str());
 
 			return;
 		}
-		else if (targetCommand == "--decompress")
+		else if (targetCommand == "--unpack")
 		{
-			oss << "Either decompresses selected bundle or dir from '.7z'"
-				<< " or simply copies the already decompressed file from the target binary.\n\n"
+			oss << "Unpacks the bundle from the target binary. The optional '--decompress'"
+				<< " flag either decompresses selected bundle from '.7z'"
+				<< " or simply unpacks the already decompressed file from the target binary"
+				<< " if the selected bundle is already compressed.\n\n"
 
 				<< "Accepted parameters:\n\n"
 
-				<< "When decompressing all bundles:\n"
-				<< "[1] --decompress: the command itself\n"
+				<< "When unpacking all bundles:\n"
+				<< "[1] --unpack: the command itself\n"
 				<< "[2] --all: all bundles in the target binary\n"
-				<< "[3] filePath: the path where all the bundles will be decompressed to\n\n"
+				<< "[3] filePath: the path where all the bundles will be unpacked to\n\n"
 
-				<< "When decompressing selected bundle:\n"
-				<< "[1] --decompress: the command itself\n"
+				<< "When unpacking selected bundle:\n"
+				<< "[1] --unpack: the command itself\n"
 				<< "[2] targetBundle: the name or index of the bundle in the target binary\n"
-				<< "[3] filePath: the path where the bundle will be decompressed to";
+				<< "[3] filePath: the path where the bundle will be unpacked to\n\n"
+
+				<< "When unpacking and decompressing all bundles:\n"
+				<< "[1] --unpack: the command itself\n"
+				<< "[2] --decompress: the optional decompress flag\n"
+				<< "[3] --all: all bundles in the target binary\n"
+				<< "[4] filePath: the path where all the bundles will be unpacked to\n\n"
+
+				<< "When unpacking and decompressing selected bundle:\n"
+				<< "[1] --unpack: the command itself\n"
+				<< "[2] --decompress: the optional decompress flag\n"
+				<< "[3] targetBundle: the name or index of the bundle in the target binary\n"
+				<< "[4] filePath: the path where the bundle will be unpacked to";
 
 			Log::Print(oss.str());
 
@@ -567,8 +602,8 @@ void Command_Reset(const path& targetBinary)
 
 }
 
-void Command_Compress(
-	Command_Compress_Range range,
+void Command_Pack(
+	Command_Pack_Range range,
 	const string& newFile,
 	const string& name,
 	const string& targetBinary)
@@ -577,8 +612,8 @@ void Command_Compress(
 	Data::AddGlobalHeader(targetBinary);
 }
 
-void Command_Decompress(
-	Command_Decompress_Range range,
+void Command_Unpack(
+	Command_Unpack_Range range,
 	const string& nameOrIndex,
 	const path& decompressTo,
 	const path& targetBinary)

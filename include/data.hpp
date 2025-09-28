@@ -55,19 +55,23 @@ namespace KalaExtract
 		static bool AddGlobalHeader(const path& targetPath);
 
 		//Adds a new bundle to the target binary
-		static bool AddBundle();
+		static bool AddBundle(
+			const BundleHeaderData& newBundleData,
+			const string& bundleNameOrIndex,
+			const string& targetBinary);
 
-		//Removes chosen bundle from the target binary
+		//Removes the existing bundle from the target binary
 		static bool RemoveBundle(
 			const string& bundleNameOrIndex,
 			const string& targetBinary);
 
+		//Extracts the existing bundle data from the target binary
 		static bool GetBundleData(
 			const BundleHeaderData& newBundleData,
 			const string& bundleNameOrIndex,
 			const string& targetBinary);
 
-		//Removes global header and all bundles from binary
+		//Removes the global header and all bundles from the target binary
 		static bool ResetBinary(const path& target);
 	};
 }
