@@ -27,10 +27,11 @@ using std::array;
 using std::vector;
 using std::filesystem::path;
 
-static const array<string_view, 9> commands =
+static const array<string_view, 10> commands =
 {
 	"--help",
 	"--exit",
+	"--quickexit",
 	"--create",
 	"--get",
 	"--replace",
@@ -40,65 +41,7 @@ static const array<string_view, 9> commands =
 	"--unpack"
 };
 
-enum Command_Get_Range
-{
-	GET_ALL,
-	GET_TARGET
-};
-
-enum Command_Remove_Range
-{
-	REMOVE_ALL,
-	REMOVE_TARGET
-};
-
-enum Command_Pack_Range
-{
-	PACK_ALL,
-	PACK_TARGET_WITH_NAME,
-	PACK_TARGET_NO_NAME
-};
-
-enum Command_Unpack_Range
-{
-	UNPACK_ALL,
-	UNPACK_TARGET
-};
-
 static void Command_Help(const string& targetCommand);
-
-static void Command_Create(const path& targetBinary);
-
-static void Command_Get(
-	Command_Get_Range range,
-	const string& nameOrIndex,
-	const path& targetBinary);
-
-static void Command_Replace(
-	const string& nameOrIndex,
-	const path& replaceWith,
-	const path& targetBinary);
-
-static void Command_Remove(
-	Command_Remove_Range range,
-	const string& nameOrIndex,
-	const path& targetBinary);
-
-static void Command_Reset(const path& targetBinary);
-
-static void Command_Pack(
-	Command_Pack_Range range,
-	bool willCompress,
-	const string& newFile,
-	const string& name,
-	const string& targetBinary);
-
-static void Command_Unpack(
-	Command_Unpack_Range range,
-	bool willDecompress,
-	const string& nameOrIndex,
-	const path& decompressTo,
-	const path& targetBinary);
 
 namespace KalaExtract
 {
@@ -141,7 +84,7 @@ namespace KalaExtract
 		{
 			if (params.size() == 2)
 			{
-				Command_Create(params[1]);
+				Data::Command_Create(params[1]);
 			}
 			else
 			{
@@ -161,14 +104,14 @@ namespace KalaExtract
 			{
 				if (params[1] == "--all")
 				{
-					Command_Get(
+					Data::Command_Get(
 						Command_Get_Range::GET_ALL,
 						"",         //name is unused if no name is passed
 						params[2]);
 				}
 				else
 				{
-					Command_Get(
+					Data::Command_Get(
 						Command_Get_Range::GET_TARGET,
 						params[1],
 						params[2]);
@@ -190,7 +133,7 @@ namespace KalaExtract
 		{
 			if (params.size() == 4)
 			{
-				Command_Replace(
+				Data::Command_Replace(
 					params[1],
 					params[2],
 					params[3]);
@@ -214,14 +157,14 @@ namespace KalaExtract
 			{
 				if (params[1] == "--all")
 				{
-					Command_Remove(
+					Data::Command_Remove(
 						Command_Remove_Range::REMOVE_ALL,
 						"",         //name is unused if no name is passed
 						params[2]);
 				}
 				else
 				{
-					Command_Remove(
+					Data::Command_Remove(
 						Command_Remove_Range::REMOVE_TARGET,
 						params[1],
 						params[2]);
@@ -243,7 +186,7 @@ namespace KalaExtract
 		{
 			if (params.size() == 2)
 			{
-				Command_Reset(params[1]);
+				Data::Command_Reset(params[1]);
 			}
 			else
 			{
@@ -263,7 +206,7 @@ namespace KalaExtract
 			if (params[1] == "--all"
 				&& params.size() == 3)
 			{
-				Command_Pack(
+				Data::Command_Pack(
 					Command_Pack_Range::PACK_ALL,
 					false,
 					"",         //name is unused if no name is passed
@@ -275,7 +218,7 @@ namespace KalaExtract
 				&& params[2] == "--all"
 				&& params.size() == 4)
 			{
-				Command_Pack(
+				Data::Command_Pack(
 					Command_Pack_Range::PACK_ALL,
 					true,
 					"",         //name is unused if no name is passed
@@ -287,7 +230,7 @@ namespace KalaExtract
 			else if (params[1] == "--compress"
 				&& params.size() == 5)
 			{
-				Command_Pack(
+				Data::Command_Pack(
 					Command_Pack_Range::PACK_TARGET_WITH_NAME,
 					true,
 					params[2],
@@ -297,7 +240,7 @@ namespace KalaExtract
 			//pack target with name, dont compress
 			else if (params.size() == 4)
 			{
-				Command_Pack(
+				Data::Command_Pack(
 					Command_Pack_Range::PACK_TARGET_WITH_NAME,
 					false,
 					params[1],
@@ -308,7 +251,7 @@ namespace KalaExtract
 			//pack target with no name, dont compress
 			else if (params.size() == 3)
 			{
-				Command_Pack(
+				Data::Command_Pack(
 					Command_Pack_Range::PACK_TARGET_NO_NAME,
 					false,
 					params[1],
@@ -319,7 +262,7 @@ namespace KalaExtract
 			else if (params[1] == "--compress"
 				&& params.size() == 4)
 			{
-				Command_Pack(
+				Data::Command_Pack(
 					Command_Pack_Range::PACK_TARGET_NO_NAME,
 					true,
 					params[2],
@@ -345,7 +288,7 @@ namespace KalaExtract
 			if (params[1] == "--all"
 				&& params.size() == 4)
 			{
-				Command_Unpack(
+				Data::Command_Unpack(
 					Command_Unpack_Range::UNPACK_ALL,
 					false,
 					"",         //name is unused if no name is passed
@@ -357,7 +300,7 @@ namespace KalaExtract
 				&& params[2] == "--all"
 				&& params.size() == 5)
 			{
-				Command_Unpack(
+				Data::Command_Unpack(
 					Command_Unpack_Range::UNPACK_ALL,
 					true,
 					"",         //name is unused if no name is passed
@@ -369,7 +312,7 @@ namespace KalaExtract
 			else if (params[1] != "--all"
 				&& params.size() == 5)
 			{
-				Command_Unpack(
+				Data::Command_Unpack(
 					Command_Unpack_Range::UNPACK_TARGET,
 					false,
 					params[2],
@@ -381,7 +324,7 @@ namespace KalaExtract
 				&& params[2] != "--all"
 				&& params.size() == 6)
 			{
-				Command_Unpack(
+				Data::Command_Unpack(
 					Command_Unpack_Range::UNPACK_TARGET,
 					true,
 					params[3],
@@ -450,11 +393,23 @@ void Command_Help(const string& targetCommand)
 		}
 		else if (targetCommand == "--exit")
 		{
-			oss << "Exits KalaExtract\n\n"
+			oss << "Exits KalaExtract but asks for user to press 'Enter' to close the application\n\n"
 
 				<< "Accepted parameters:\n\n"
 
 				<< "[1] --exit: the command itself";
+
+			Log::Print(oss.str());
+
+			return;
+		}
+		else if (targetCommand == "--quickexit")
+		{
+			oss << "Exits KalaExtract without asing user to press 'Enter' to close the application\n\n"
+
+				<< "Accepted parameters:\n\n"
+
+				<< "[1] --quickexit: the command itself";
 
 			Log::Print(oss.str());
 
@@ -621,79 +576,4 @@ void Command_Help(const string& targetCommand)
 			return;
 		}
 	}
-}
-
-void Command_Create(const path& targetBinary)
-{
-	string result = CreateFile(targetBinary);
-
-	if (!result.empty())
-	{
-		ostringstream oss{};
-
-		oss << "Failed to create new binary at path '" << targetBinary
-			<< "'! Reason: " << result;
-
-		Log::Print(
-			oss.str(),
-			"COMMAND_CREATE",
-			LogType::LOG_ERROR);
-
-		return;
-	}
-
-	Log::Print(
-		"Created new binary at path '" + targetBinary.string() + "'!",
-		"COMMAND_CREATE",
-		LogType::LOG_SUCCESS);
-}
-
-void Command_Get(
-	Command_Get_Range range,
-	const string& nameOrIndex,
-	const path& targetBinary)
-{
-
-}
-
-void Command_Replace(
-	const string& nameOrIndex,
-	const path& replaceWith,
-	const path& targetBinary)
-{
-
-}
-
-void Command_Remove(
-	Command_Remove_Range range,
-	const string& nameOrIndex,
-	const path& targetBinary)
-{
-
-}
-
-void Command_Reset(const path& targetBinary)
-{
-
-}
-
-void Command_Pack(
-	Command_Pack_Range range,
-	bool willCompress,
-	const string& newFile,
-	const string& name,
-	const string& targetBinary)
-{
-	//add new global header if one doesnt already exist
-	Data::AddGlobalHeader(targetBinary);
-}
-
-void Command_Unpack(
-	Command_Unpack_Range range,
-	bool willDecompress,
-	const string& nameOrIndex,
-	const path& decompressTo,
-	const path& targetBinary)
-{
-
 }

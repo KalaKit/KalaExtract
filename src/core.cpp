@@ -52,7 +52,7 @@ static void PrintBanner()
 
 static void GetParams(int argc, char* argv[]);
 static void WaitForInput();
-static void Exit();
+static void Exit(bool quickExit);
 
 namespace KalaExtract
 {
@@ -62,7 +62,7 @@ namespace KalaExtract
 		GetParams(argc, argv);
 		WaitForInput();
 
-		Exit();
+		Exit(false);
 	}
 }
 
@@ -73,7 +73,12 @@ void GetParams(int argc, char* argv[])
 	vector<string> params{};
 	string insertedCommand{};
 
-	bool shouldExit = (string(argv[argc - 1]) == "--exit");
+	string lastParam = string(argv[argc - 1]);
+
+	bool shouldExit =
+		string(argv[1]) != "--help"
+		&& (lastParam == "--exit"
+		|| lastParam == "--quickexit");
 
 	for (int i = 1; i < argc; ++i)
 	{
@@ -96,7 +101,11 @@ void GetParams(int argc, char* argv[])
 
 	Command::ParseCommand(params);
 
-	if (shouldExit) Exit();
+	if (shouldExit)
+	{
+		if (lastParam == "--exit") Exit(false);
+		else Exit(true);
+	}
 }
 
 void WaitForInput()
@@ -119,15 +128,7 @@ void WaitForInput()
 
 		vector<string> splitValue = SplitString(line, " ");
 
-		if (splitValue.size() == 0)
-		{
-			Log::Print(
-				"No commands were passed. Type '--help' to list all commands",
-				"PARSE",
-				LogType::LOG_INFO);
-
-			continue;
-		}
+		if (splitValue.size() == 0) continue;
 
 		if (splitValue[0] == "--exit")
 		{
@@ -136,28 +137,48 @@ void WaitForInput()
 				"PARSE",
 				LogType::LOG_INFO);
 
-			Exit();
+			Exit(false);
+		}
+		else if (splitValue[0] == "--quickexit")
+		{
+			Log::Print(
+				"KalaExtract was shut down quickly by user.",
+				"PARSE",
+				LogType::LOG_INFO);
+
+			Exit(true);
 		}
 
-		bool shouldExit = (
-			!splitValue.empty()
-			&& splitValue.back() == "--exit");
+		string lastParam = splitValue.back();
+
+		bool shouldExit =
+			splitValue[0] != "--help"
+			&& (lastParam == "--exit"
+			|| lastParam == "--quickexit");
 
 		if (shouldExit) splitValue.pop_back();
 
 		Command::ParseCommand(splitValue);
 
-		if (shouldExit) Exit();
+		if (shouldExit)
+		{
+			if (lastParam == "--exit") Exit(false);
+			else Exit(true);
+		}
 	}
 }
 
-void Exit()
+void Exit(bool quickExit)
 {
-	ostringstream out{};
-	out << "\n==========================================================================================\n";
-	Log::Print(out.str());
+	if (!quickExit)
+	{
+		ostringstream out{};
+		out << "\n==========================================================================================\n";
+		Log::Print(out.str());
 
-	Log::Print("Press 'Enter' to exit...");
-	cin.get();
+		Log::Print("Press 'Enter' to exit...");
+		cin.get();
+	}
+
 	quick_exit(0);
 }

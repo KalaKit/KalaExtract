@@ -15,63 +15,65 @@ namespace KalaExtract
 	using std::filesystem::path;
 	using std::string;
 
-	//All data stored at the top of a KalaExtract-created binary bundle collection
-	struct GlobalHeaderData
+	enum Command_Get_Range
 	{
-		//Total count of all bundles
-		char size_bundles[255];
-
-		//Size of all bundle raw data excluding their headers and end magic words
-		u32 totalSize;
+		GET_ALL,
+		GET_TARGET
 	};
 
-	//All data stored at the top of each KalaExtract-created binary bundle
-	struct BundleHeaderData
+	enum Command_Remove_Range
 	{
-		//Name of this bundle
-		char name_bundle[255];
+		REMOVE_ALL,
+		REMOVE_TARGET
+	};
 
-		//Which bundle is this
-		char index_bundle[255];
+	enum Command_Pack_Range
+	{
+		PACK_ALL,
+		PACK_TARGET_WITH_NAME,
+		PACK_TARGET_NO_NAME
+	};
 
-		//Size of compressed bundle
-		u32 size_compressed;
-		//Size of decompressed bundle
-		u32 size_decompressed;
-
-		//Path where bundle originally came from
-		char path_bundleOrigin[255];
-
-		//Bytes from bundle header end to bundle end magic start
-		u32 pos_headerEnd;
-		//Bytes from bundle end magic start to bundle header end
-		u32 pos_endMagicStart;
+	enum Command_Unpack_Range
+	{
+		UNPACK_ALL,
+		UNPACK_TARGET
 	};
 
 	class Data
 	{
 	public:
-		//Adds a new global header to the target binary
-		static bool AddGlobalHeader(const path& targetPath);
+		static void Command_Create(const path& targetBinary);
 
-		//Adds a new bundle to the target binary
-		static bool AddBundle(
-			const BundleHeaderData& newBundleData,
-			const string& bundleNameOrIndex,
+		static void Command_Get(
+			Command_Get_Range range,
+			const string& nameOrIndex,
+			const path& targetBinary);
+
+		static void Command_Replace(
+			const string& nameOrIndex,
+			const path& replaceWith,
+			const path& targetBinary);
+
+		static void Command_Remove(
+			Command_Remove_Range range,
+			const string& nameOrIndex,
+			const path& targetBinary);
+
+		static void Command_Reset(const path& targetBinary);
+
+		static void Command_Pack(
+			Command_Pack_Range range,
+			bool willCompress,
+			const string& newFile,
+			const string& name,
 			const string& targetBinary);
 
-		//Removes the existing bundle from the target binary
-		static bool RemoveBundle(
-			const string& bundleNameOrIndex,
-			const string& targetBinary);
-
-		//Extracts the existing bundle data from the target binary
-		static bool GetBundleData(
-			const BundleHeaderData& newBundleData,
-			const string& bundleNameOrIndex,
-			const string& targetBinary);
-
-		//Removes the global header and all bundles from the target binary
-		static bool ResetBinary(const path& target);
+		static void Command_Unpack(
+			Command_Unpack_Range range,
+			bool willDecompress,
+			const string& nameOrIndex,
+			const path& decompressTo,
+			const path& targetBinary);
 	};
 }
