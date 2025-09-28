@@ -14,10 +14,12 @@
 
 #include "core.hpp"
 #include "command.hpp"
+#include "data.hpp"
 
 using namespace KalaHeaders;
 
 using KalaExtract::Core;
+using KalaExtract::Data;
 
 using std::string;
 using std::string_view;
@@ -571,7 +573,8 @@ void Command_Compress(
 	const string& name,
 	const string& targetBinary)
 {
-
+	//add new global header if one doesnt already exist
+	Data::AddGlobalHeader(targetBinary);
 }
 
 void Command_Decompress(

@@ -26,39 +26,49 @@ using std::memcmp;
 using std::begin;
 using std::end;
 
-constexpr string_view GLOBAL_HEADER = "LOST_EMPIRE_BIN_";
-constexpr string_view BUNDLE_START = "LOST_EMPIRE_STA_";
-constexpr string_view BUNDLE_END = "LOST_EMPIRE_END_";
+constexpr string_view GLOBAL_HEADER = "LOST_EMPIRE_BIN";
+constexpr string_view BUNDLE_START = "LOST_EMPIRE_STA";
+constexpr string_view BUNDLE_END = "LOST_EMPIRE_END";
+
+static bool HasGlobalHeader(const path& target);
 
 namespace KalaExtract
 {
-	bool Data::HasGlobalHeader(const path& targetPath)
+	bool Data::AddGlobalHeader(const path& targetPath)
 	{
-		string headerWithNull(GLOBAL_HEADER);
-		headerWithNull.push_back('\0');
+		//skip if global header already exists
+		if (HasGlobalHeader(targetPath)) return false;
 
-		vector<BinaryRange> outData{};
-
-		string result = GetRangeByValue(
-			targetPath,
-			headerWithNull,
-			outData);
-
-		if (!result.empty())
-		{
-			ostringstream oss{};
-
-			oss << "Failed to check if target path '" << targetPath
-				<< "' has a global header or not! Reason: " << result;
-
-			Log::Print(
-				oss.str(),
-				"DATA",
-				LogType::LOG_ERROR);
-
-			return false;
-		}
-
-		return !outData.empty();
+		return true;
 	}
+}
+
+bool HasGlobalHeader(const path& targetPath)
+{
+	string headerWithNull(GLOBAL_HEADER);
+	headerWithNull.push_back('\0');
+
+	vector<BinaryRange> outData{};
+
+	string result = GetRangeByValue(
+		targetPath,
+		headerWithNull,
+		outData);
+
+	if (!result.empty())
+	{
+		ostringstream oss{};
+
+		oss << "Failed to check if target path '" << targetPath
+			<< "' has a global header or not! Reason: " << result;
+
+		Log::Print(
+			oss.str(),
+			"DATA",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	return !outData.empty();
 }

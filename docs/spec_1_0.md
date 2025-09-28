@@ -114,23 +114,31 @@ Command: kalaextract --decompress x y z
 
 These two tables highlight what data is actually stored besides just the bundles, it goes in depth about what each field means and how much space it takes
 
+Some size notes:
+
+- global header size is always `260 bytes`
+- each bundle header size is always `784 bytes`
+- size of max bundle headers + global header data never exceeds `200KB (200,180 bytes)`
+- size of all header sizes + all bundle binary data never exceeds `~1.095 TB`
+
 ### Global header data
 
-Offset | Size | Type     | Field                          | Notes
--------|------|----------|--------------------------------|-------------------------------
-0–15   | 16   | char[16] | Magic keyword                  | `LOST_EMPIRE_BIN_\0` (16 bytes fixed)
-16     | 1    | u8       | Bundle count                   | Max 255
-17–20  | 4    | u32      | Total compressed size (bytes)  | Sum of all bundles, max ~1.1 TB
+Offset | Size | Type        | Field         | Notes
+-------|------|-------------|---------------|-------------------------------------
+0–15   | 16   | char[16]    | Magic keyword | `LOST_EMPIRE_BIN_` (16 bytes fixed)
+16–270 | 255  | char[255]   | Bundle IDs    | 254 chars + `\0`
+271–274| 4    | u32         | Total size    | Sum of all bundles
 
 ### Individual bundle header data
 
-Offset (relative) | Size  | Type     | Field                     | Notes
-------------------|-------|----------|---------------------------|------------------------------
-0–15              | 16    | char[16] | Magic keyword             | `LOST_EMPIRE_STA_\0` (16 bytes fixed)
-16                | 1     | u8       | Name length               | Max 64
-17–80             | 1–64  | char[N]  | Name data                 | N = name length, must atleast have one char
-17+N              | 1     | u8       | Binary index              | 0–255, never reused
-18+N              | 4     | u32      | Compressed size (bytes)   | Max ~4.29 GB
-22+N              | 4     | u32      | Decompressed size (bytes) | Max ~4.29 GB
-26+N              | …     | byte[]   | Compressed bundle data    | Payload
-26+N+dataSize     | 16    | char[16] | End magic keyword         | `LOST_EMPIRE_END_\0` (16 bytes fixed)
+Offset | Size | Type        | Field             | Notes
+-------|------|-------------|-------------------|-------------------------------------
+0–15   | 16   | char[16]    | Magic keyword     | `LOST_EMPIRE_STA_` (16 bytes fixed)
+16–270 | 255  | char[255]   | Bundle name       | 254 chars + `\0`
+271–525| 255  | char[255]   | Bundle index      | Fixed, zero-padded text index
+526–529| 4    | u32         | Compressed size   | Bundle compressed size before adding to target binary
+530–533| 4    | u32         | Decompressed size | Bundle decompressed size before adding to target binary
+534–788| 255  | char[255]   | Origin path       | 254 chars + `\0`
+789–792| 4    | u32         | pos_headerEnd     | Distance from bundle header end to bundle end magic
+793–796| 4    | u32         | pos_endMagicStart | Distance back from bundle end magic to bundle header end
+797–812| 16   | char[16]    | End magic keyword | `LOST_EMPIRE_END_` (16 bytes fixed)

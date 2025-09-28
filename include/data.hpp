@@ -6,13 +6,68 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
+
+#include "KalaHeaders/core_utils.hpp"
 
 namespace KalaExtract
 {
 	using std::filesystem::path;
+	using std::string;
+
+	//All data stored at the top of a KalaExtract-created binary bundle collection
+	struct GlobalHeaderData
+	{
+		//Total count of all bundles
+		char size_bundles[255];
+
+		//Size of all bundle raw data excluding their headers and end magic words
+		u32 totalSize;
+	};
+
+	//All data stored at the top of each KalaExtract-created binary bundle
+	struct BundleHeaderData
+	{
+		//Name of this bundle
+		char name_bundle[255];
+
+		//Which bundle is this
+		char index_bundle[255];
+
+		//Size of compressed bundle
+		u32 size_compressed;
+		//Size of decompressed bundle
+		u32 size_decompressed;
+
+		//Path where bundle originally came from
+		char path_bundleOrigin[255];
+
+		//Bytes from bundle header end to bundle end magic start
+		u32 pos_headerEnd;
+		//Bytes from bundle end magic start to bundle header end
+		u32 pos_endMagicStart;
+	};
 
 	class Data
 	{
-		static bool HasGlobalHeader(const path& targetPath);
+	public:
+		//Adds a new global header to the target binary
+		static bool AddGlobalHeader(const path& targetPath);
+
+		//Adds a new bundle to the target binary
+		static bool AddBundle();
+
+		//Removes chosen bundle from the target binary
+		static bool RemoveBundle(
+			const string& bundleNameOrIndex,
+			const string& targetBinary);
+
+		static bool GetBundleData(
+			const BundleHeaderData& newBundleData,
+			const string& bundleNameOrIndex,
+			const string& targetBinary);
+
+		//Removes global header and all bundles from binary
+		static bool ResetBinary(const path& target);
 	};
 }
