@@ -3,13 +3,16 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include "core.hpp"
+#pragma once
 
-using KalaExtract::Core;
+#include <filesystem>
 
-int main(int argc, char* argv[])
+namespace KalaExtract
 {
-	Core::Run(argc, argv);
+	using std::filesystem::path;
 
-	return 0;
+	class Data
+	{
+		static bool HasGlobalHeader(const path& targetPath);
+	};
 }

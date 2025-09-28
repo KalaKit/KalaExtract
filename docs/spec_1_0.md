@@ -118,7 +118,7 @@ These two tables highlight what data is actually stored besides just the bundles
 
 Offset | Size | Type     | Field                          | Notes
 -------|------|----------|--------------------------------|-------------------------------
-0–15   | 16   | char[16] | Magic keyword                  | `LOST_EMPIRE_BIN\0` (16 bytes fixed)
+0–15   | 16   | char[16] | Magic keyword                  | `LOST_EMPIRE_BIN_\0` (16 bytes fixed)
 16     | 1    | u8       | Bundle count                   | Max 255
 17–20  | 4    | u32      | Total compressed size (bytes)  | Sum of all bundles, max ~1.1 TB
 
@@ -126,11 +126,11 @@ Offset | Size | Type     | Field                          | Notes
 
 Offset (relative) | Size  | Type     | Field                     | Notes
 ------------------|-------|----------|---------------------------|------------------------------
-0–15              | 16    | char[16] | Magic keyword             | `LOST_EMPIRE_STA\0` (16 bytes fixed)
+0–15              | 16    | char[16] | Magic keyword             | `LOST_EMPIRE_STA_\0` (16 bytes fixed)
 16                | 1     | u8       | Name length               | Max 64
 17–80             | 1–64  | char[N]  | Name data                 | N = name length, must atleast have one char
 17+N              | 1     | u8       | Binary index              | 0–255, never reused
 18+N              | 4     | u32      | Compressed size (bytes)   | Max ~4.29 GB
 22+N              | 4     | u32      | Decompressed size (bytes) | Max ~4.29 GB
 26+N              | …     | byte[]   | Compressed bundle data    | Payload
-26+N+dataSize     | 16    | char[16] | End magic keyword         | `LOST_EMPIRE_END\0` (16 bytes fixed)
+26+N+dataSize     | 16    | char[16] | End magic keyword         | `LOST_EMPIRE_END_\0` (16 bytes fixed)

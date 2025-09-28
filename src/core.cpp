@@ -11,8 +11,8 @@
 #include "KalaHeaders/string_utils.hpp"
 #include "KalaHeaders/file_utils.hpp"
 
-#include "core/core.hpp"
-#include "core/command.hpp"
+#include "core.hpp"
+#include "command.hpp"
 
 using namespace KalaHeaders;
 
