@@ -11,5 +11,7 @@ namespace KalaExtract
 	{
 	public:
 		static void Run(int argc, char* argv[]);
+
+		static void WaitForInput();
 	};
 }

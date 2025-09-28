@@ -16,6 +16,6 @@ namespace KalaExtract
 	class Command
 	{
 	public:
-		static void RunCommand(const vector<string>& params);
+		static void ParseCommand(const vector<string>& params);
 	};
 }

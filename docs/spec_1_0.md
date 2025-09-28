@@ -84,7 +84,7 @@ If the target bundle is already marked with the **supported compression extensio
 
 Command: kalaextract --compress --all x
 
-- compresses all files and folders (except kalaextract itself) in current dir with their name and compressed size and uncompressed size into file `x`
+- compresses all files and folders (except **KalaExtract** itself) in current dir with their name and compressed size and uncompressed size into file `x`
 
 Command: kalaextract --compress x y z  
 
@@ -102,11 +102,11 @@ If the target bundle is already not marked with the **supported compression exte
 
 Command: kalaextract --decompress all x y
 
-- decompresses all files to path `x` from target binary `y` 
+- decompresses all bundles to path `x` from target binary `y` 
 
 Command: kalaextract --decompress x y z
 
-- decompresses bundle with name/index `x` to path `y` from target binary `z` 
+- decompresses a bundle with name/index `x` to path `y` from target binary `z` 
 
 ---
 
