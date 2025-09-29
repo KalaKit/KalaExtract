@@ -22,6 +22,11 @@ These extensions were chosen because they're OS-agnostic since KalaExtract aims 
 
 All errors are printed directly to the console output as string.
 
+Supported flags at the end of commands (only one of the exit variants at one time):
+- --exit - call command and require user to press `enter` to exit
+- --quickexit - call command and immediately exit afterwards
+- --nosplash - does not re-display the splash screen every time a new command is inserted (quirk of the cli) 
+
 ### Get info about commands
 
 Command: --help
@@ -33,8 +38,6 @@ Command: --help x
 - lists detailed info about command `x`
 
 ### Exit KalaExtract
-
-You are also able to pass either exit condition as the final parameter of each command and then once the real command is done then KalaExtract exits with the chosen exit type
 
 Command: --exit
 
