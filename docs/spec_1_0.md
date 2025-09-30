@@ -47,6 +47,24 @@ Command: --quickexit
 
 - Closes **KalaExtract** and exits straight away with no further input needed
 
+### Print current path
+
+Command: --where
+
+- Prints the current user-chosen destination, or exe root folder if unassigned
+
+### List contents
+
+Command: --list
+
+- Lists all files and folders in current user-chosen destination, or exe root folder if unassigned
+
+### Set target path
+
+Command: --go
+
+- Assigns a new target path to handle content relative from\
+
 ### Create a new target binary
 
 The purpose of this command is to let you create any binary file at any path so you can pass data to it with **KalaExtract**.

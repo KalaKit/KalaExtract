@@ -27,11 +27,22 @@ using std::array;
 using std::vector;
 using std::filesystem::path;
 
-static const array<string_view, 10> commands =
+static const array<string_view, 13> commands =
 {
+	//general commands
+
 	"--help",
 	"--exit",
 	"--quickexit",
+
+	//navigation commands
+
+	"--where",
+	"--list",
+	"--go",
+
+	//bundle and target binary commands
+
 	"--create",
 	"--get",
 	"--replace",
@@ -72,6 +83,157 @@ namespace KalaExtract
 			{
 				Log::Print(
 					"Incorrect parameter structure was passed to '--help' command! Type '--help' to list all commands.",
+					"PARSE",
+					LogType::LOG_ERROR);
+
+				return;
+			}
+		}
+
+		//print current path
+		if (params[0] == "--where")
+		{
+			if (params.size() == 1)
+			{
+				ostringstream oss{};
+
+				oss << "Currently located at '" << Core::GetCurrentPath() << "'.";
+
+				Log::Print(
+					oss.str(),
+					"COMMAND_WHERE",
+					LogType::LOG_SUCCESS);
+
+				return;
+			}
+			else
+			{
+				Log::Print(
+					"Incorrect parameter structure was passed to '--where' command! Type '--help' to list all commands.",
+					"PARSE",
+					LogType::LOG_ERROR);
+
+				return;
+			}
+		}
+
+		//list all the contents of the current folder
+		if (params[0] == "--list")
+		{
+			if (params.size() == 1)
+			{
+				ostringstream oss{};
+
+				path current = Core::GetCurrentPath();
+				
+				vector<path> content{};
+				string result = ListDirectoryContents(
+					current,
+					content,
+					false);
+
+				if (!result.empty())
+				{
+					oss << "Failed to list paths in current dir with '--list' command!"
+						<< " Reason: " << result;
+
+					Log::Print(
+						oss.str(),
+						"COMMAND_LIST",
+						LogType::LOG_ERROR);
+
+					return;
+				}
+
+				oss << "Listing all paths at '" << current << "':\n";
+				if (content.empty()) oss << "  - (empty)";
+				else
+				{
+					for (size_t i = 0; i < content.size(); ++i)
+					{
+						oss << "  - ";
+
+						path rel = content[i].lexically_relative(current);
+						oss << rel.string();
+
+						if (is_directory(content[i])) oss << "/";
+
+						if (i + 1 < content.size()) oss << "\n";
+					}
+				}
+
+				Log::Print(
+					oss.str(),
+					"COMMAND_LIST",
+					LogType::LOG_SUCCESS);
+
+				return;
+			}
+			else
+			{
+				Log::Print(
+					"Incorrect parameter structure was passed to '--list' command! Type '--help' to list all commands.",
+					"PARSE",
+					LogType::LOG_ERROR);
+
+				return;
+			}
+		}
+
+		//go to new path
+		if (params[0] == "--go"
+			&& params.size() == 2)
+		{
+			if (params.size() == 2)
+			{
+				path base = Core::GetCurrentPath();
+				path correctTarget = weakly_canonical(base / params[1]);
+
+				if (!exists(correctTarget))
+				{
+					ostringstream oss{};
+					oss << "Cannot go to target path '" << correctTarget
+						<< "' because it does not exist!";
+
+					Log::Print(
+						oss.str(),
+						"COMMAND_GO",
+						LogType::LOG_ERROR);
+
+					return;
+				}
+
+				if (!is_directory(correctTarget))
+				{
+					ostringstream oss{};
+					oss << "Cannot go to target path '" << correctTarget
+						<< "' because it is not a directory!";
+
+					Log::Print(
+						oss.str(),
+						"COMMAND_GO",
+						LogType::LOG_ERROR);
+
+					return;
+				}
+
+				Core::SetCurrentPath(correctTarget);
+
+				ostringstream oss{};
+
+				oss << "Navigated to '" << Core::GetCurrentPath() << "'!";
+
+				Log::Print(
+					oss.str(),
+					"COMMAND_GO",
+					LogType::LOG_SUCCESS);
+
+				return;
+			}
+			else
+			{
+				Log::Print(
+					"Incorrect parameter structure was passed to '--go' command! Type '--help' to list all commands.",
 					"PARSE",
 					LogType::LOG_ERROR);
 
@@ -377,6 +539,8 @@ void Command_Help(const string& targetCommand)
 			return;
 		}
 
+		//general commands
+
 		if (targetCommand == "--help")
 		{
 			oss << "Lists all commands or lists the info about the selected command"
@@ -415,6 +579,48 @@ void Command_Help(const string& targetCommand)
 
 			return;
 		}
+
+		//navigation commands
+		else if (targetCommand == "--where")
+		{
+			oss << "Prints the current user-chosen destination, or exe root folder if unassigned\n\n"
+
+				<< "Accepted parameters:\n\n"
+
+				<< "[1] --where: the command itself";
+
+			Log::Print(oss.str());
+
+			return;
+		}
+		else if (targetCommand == "--list")
+		{
+			oss << "Lists all files and folders in current user-chosen destination, or exe root folder if unassigned\n\n"
+
+				<< "Accepted parameters:\n\n"
+
+				<< "[1] --list: the command itself";
+
+			Log::Print(oss.str());
+
+			return;
+		}
+		else if (targetCommand == "--go")
+		{
+			oss << "Assigns a new target path to handle content relative from\n\n"
+
+				<< "Accepted parameters:\n\n"
+
+				<< "[1] --go: the command itself\n"
+				<< "[2] --targetPath: the new path to set as the target path";
+
+			Log::Print(oss.str());
+
+			return;
+		}
+
+		//bundle and target binary commands
+
 		else if (targetCommand == "--get")
 		{
 			oss << "Prints info about the selected bundle:\n"
