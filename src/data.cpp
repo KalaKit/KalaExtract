@@ -118,9 +118,27 @@ struct BundleHeaderData
 	}
 };
 
-static bool HasGlobalHeader(const path& target);
+static bool HasGlobalHeader(const path& targetBinary);
 
-static bool AddGlobalHeader(const path& targetPath);
+static bool AddGlobalHeader(const path& targetBinary);
+
+static bool GetGlobalHeader(
+	const path& targetBinary,
+	GlobalHeaderData& outHeader);
+
+static bool HasBundleHeader(
+	const path& targetBinary,
+	const string& nameOrIndex);
+
+static bool AddBundleHeader(
+	const path& targetBinary,
+	const string& nameOrIndex,
+	BundleHeaderData& outHeader);
+
+static bool GetBundleHeader(
+	const path& targetBinary,
+	const string& nameOrIndex,
+	BundleHeaderData& outHeader);
 
 namespace KalaExtract
 {
@@ -185,7 +203,7 @@ namespace KalaExtract
 
 		if (!exists(correctTarget))
 		{
-			oss << "Failed to get data from target '" << correctTarget
+			oss << "Failed to get data from target '" << targetBinary
 				<< "' because the target does not exist!";
 
 			Log::Print(
@@ -196,81 +214,10 @@ namespace KalaExtract
 			return;
 		}
 
-		vector<BinaryRange> ranges{};
-		string rangeResult = GetRangeByValue(
-			correctTarget,
-			GLOBAL_HEADER.data(),
-			ranges);
-
-		if (!rangeResult.empty())
-		{
-			oss << "Failed to get data from target '" << correctTarget
-				<< "'! Reason: " << rangeResult;
-
-			Log::Print(
-				oss.str(),
-				"COMMAND_GET",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		if (ranges.empty())
-		{
-			oss << "Failed to get data from target '" << correctTarget
-				<< "' because it does not have a global header.";
-
-			Log::Print(
-				oss.str(),
-				"COMMAND_GET",
-				LogType::LOG_WARNING);
-
-			return;
-		}
-
-		//
-		// FOUND GLOBAL HEADER, GETTING DATA
-		//
-
-		//skip the magic, start at struct body
-		size_t headerStart = ranges[0].start;
-
-		vector<u8> linesData{};
-		string linesResult = ReadBinaryLinesFromFile(
-			correctTarget,
-			linesData,
-			headerStart,
-			headerStart + SIZE_GLOBAL_HEADER);
-
-		if (!linesResult.empty())
-		{
-			oss << "Failed to get data from target '" << correctTarget
-				<< "'! Reason: " << linesResult;
-
-			Log::Print(
-				oss.str(),
-				"COMMAND_GET",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		if (linesData.size() != sizeof(GlobalHeaderData))
-		{
-			oss << "Failed to get data from target '" << correctTarget
-				<< "'! Gathered line data size '" << linesData.size()
-				<< "' does not match required size '" << sizeof(GlobalHeaderData) << "'!";
-
-			Log::Print(
-				oss.str(),
-				"COMMAND_GET",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
 		GlobalHeaderData header{};
-		memcpy(&header, linesData.data(), sizeof(GlobalHeaderData));
+		bool result = GetGlobalHeader(targetBinary, header);
+
+		if (!result) return;
 
 		string bundleCount(
 			header.size_bundles,
@@ -509,12 +456,85 @@ namespace KalaExtract
 	}
 }
 
+bool HasGlobalHeader(const path& targetBinary)
+{
+	ostringstream oss{};
+
+	if (!exists(targetBinary))
+	{
+		oss << "Failed to check if target '" << targetBinary
+			<< "' has a global header because the target does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	string headerWithNull(GLOBAL_HEADER);
+	headerWithNull.push_back('\0');
+
+	vector<BinaryRange> outData{};
+
+	string result = GetRangeByValue(
+		targetBinary,
+		headerWithNull,
+		outData);
+
+	if (!result.empty())
+	{
+		bool ignoreError = ContainsString(
+			result,
+			"because target file is empty",
+			false);
+
+		if (ignoreError)
+		{
+			oss << "Ignoring false positive error 'target file is empty' from 'GetRangeByValue' function.";
+
+			Log::Print(
+				oss.str(),
+				"GLOBAL_HEADER",
+				LogType::LOG_DEBUG);
+		}
+		else
+		{
+			oss << "Failed to check if target path '" << targetBinary
+				<< "' has a global header or not! Reason: " << result;
+
+			Log::Print(
+				oss.str(),
+				"GLOBAL_HEADER",
+				LogType::LOG_ERROR);
+
+			return false;
+		}
+	}
+
+	return !outData.empty();
+}
+
 bool AddGlobalHeader(const path& targetBinary)
 {
+	ostringstream oss{};
+
+	if (!exists(targetBinary))
+	{
+		oss << "Failed to add global header to target '" << targetBinary
+			<< "' because the target does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
 	//skip if global header already exists
 	if (HasGlobalHeader(targetBinary)) return false;
-
-	ostringstream oss{};
 
 	oss << "Did not find global header from target '" << targetBinary
 		<< "', adding new global header.";
@@ -600,49 +620,166 @@ bool AddGlobalHeader(const path& targetBinary)
 	return true;
 }
 
-bool HasGlobalHeader(const path& targetBinary)
+bool GetGlobalHeader(
+	const path& targetBinary,
+	GlobalHeaderData& outHeader)
 {
-	string headerWithNull(GLOBAL_HEADER);
-	headerWithNull.push_back('\0');
+	ostringstream oss{};
 
-	vector<BinaryRange> outData{};
-
-	string result = GetRangeByValue(
-		targetBinary,
-		headerWithNull,
-		outData);
-
-	if (!result.empty())
+	if (!exists(targetBinary))
 	{
-		bool ignoreError = ContainsString(
-			result, 
-			"because target file is empty", 
-			false);
+		oss << "Failed to get global header from target '" << targetBinary
+			<< "' because the target does not exist!";
 
-		ostringstream oss{};
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_ERROR);
 
-		if (ignoreError)
-		{
-			oss << "Ignoring false positive error 'target file is empty' from 'GetRangeByValue' function.";
-
-			Log::Print(
-				oss.str(),
-				"DATA",
-				LogType::LOG_DEBUG);
-		}
-		else
-		{
-			oss << "Failed to check if target path '" << targetBinary
-				<< "' has a global header or not! Reason: " << result;
-
-			Log::Print(
-				oss.str(),
-				"DATA",
-				LogType::LOG_ERROR);
-
-			return false;
-		}
+		return false;
 	}
 
-	return !outData.empty();
+	vector<BinaryRange> ranges{};
+	string rangeResult = GetRangeByValue(
+		targetBinary,
+		GLOBAL_HEADER.data(),
+		ranges);
+
+	if (!rangeResult.empty())
+	{
+		oss << "Failed to get global header from target '" << targetBinary
+			<< "'! Reason: " << rangeResult;
+
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	if (ranges.empty())
+	{
+		oss << "Failed to get global header from target '" << targetBinary
+			<< "' because it does not have a global header.";
+
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_WARNING);
+
+		return false;
+	}
+
+	//
+	// FOUND GLOBAL HEADER, GETTING DATA
+	//
+
+	size_t headerStart = ranges[0].start;
+
+	vector<u8> linesData{};
+	string linesResult = ReadBinaryLinesFromFile(
+		targetBinary,
+		linesData,
+		headerStart,
+		headerStart + SIZE_GLOBAL_HEADER);
+
+	if (!linesResult.empty())
+	{
+		oss << "Failed to get global header from target '" << targetBinary
+			<< "'! Reason: " << linesResult;
+
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	if (linesData.size() != sizeof(GlobalHeaderData))
+	{
+		oss << "Failed to get global header from target '" << targetBinary
+			<< "'! Gathered line data size '" << linesData.size()
+			<< "' does not match required size '" << sizeof(GlobalHeaderData) << "'!";
+
+		Log::Print(
+			oss.str(),
+			"GLOBAL_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	memcpy(&outHeader, linesData.data(), sizeof(GlobalHeaderData));
+
+	return true;
+}
+
+bool HasBundleHeader(
+	const path& targetBinary,
+	const string& nameOrIndex)
+{
+	ostringstream oss{};
+
+	if (!exists(targetBinary))
+	{
+		oss << "Failed to check if target '" << targetBinary
+			<< "' has a bundle header because the target does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"BUNDLE_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool AddBundleHeader(
+	const path& targetBinary,
+	const string& nameOrIndex,
+	BundleHeaderData& outHeader)
+{
+	ostringstream oss{};
+
+	if (!exists(targetBinary))
+	{
+		oss << "Failed to add bundle header to target '" << targetBinary
+			<< "' because the target does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"BUNDLE_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool GetBundleHeader(
+	const path& targetBinary,
+	const string& nameOrIndex,
+	BundleHeaderData& outHeader)
+{
+	ostringstream oss{};
+
+	if (!exists(targetBinary))
+	{
+		oss << "Failed to get bundle header from target '" << targetBinary
+			<< "' because the target does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"BUNDLE_HEADER",
+			LogType::LOG_ERROR);
+
+		return false;
+	}
+
+	return true;
 }
